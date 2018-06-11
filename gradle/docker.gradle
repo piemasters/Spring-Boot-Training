@@ -11,10 +11,22 @@ buildscript {
 apply plugin: com.bmuschko.gradle.docker.DockerRemoteApiPlugin
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
 docker {
-    url = System.env.DOCKER_HOST
-    certPath = new File(System.env.DOCKER_CERT_PATH)
+    if (System.env.DOCKER_HOST) {
+        url = System.env.DOCKER_HOST
+    }
+    if (System.env.DOCKER_CERT_PATH) {
+        certPath = new File(System.env.DOCKER_CERT_PATH)
+    }
+    registryCredentials {
+        //url default value
+        //url = 'https://index.docker.io/v1/'
+        username = (System.env.DOCKER_HUB_USERNAME)
+        password = (System.env.DOCKER_HUB_PWD)
+        email = (System.env.DOCKER_HUB_USERNAME)
+    }
 }
 
 task copyDockerFiles(type: Copy) {
@@ -26,9 +38,29 @@ task copyDockerFiles(type: Copy) {
     exclude "**/*.yml"
 }
 
+def rfbImageName = 'rfbloyalty'
+
 task buildDocker(type: DockerBuildImage, dependsOn: 'copyDockerFiles') {
     description = "Package application as Docker image"
     group = "Docker"
     inputDir = project.file("${project.buildDir}/docker")
     tags = ["rfbloyalty:latest".toString(), "rfbloyalty:${project.version}".toString()]
+}
+
+/**
+ * Use to push latest tag to docker hub
+ *
+ * Note: at this time the plugin does not support pushing multiple tags
+ */
+task pushDockerLatest(type: DockerPushImage, dependsOn: 'buildDocker') {
+    imageName = rfbImageName
+    tag = "latest"
+}
+
+/**
+ * Use to push project version tag to docker hub
+ */
+task pushDockerVersionTag(type: DockerPushImage, dependsOn: 'buildDocker') {
+    imageName = rfbImageName
+    tag =  "${project.version}".toString()
 }
