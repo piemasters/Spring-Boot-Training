@@ -1,7 +1,7 @@
 version: '2'
 services:
     rfbloyalty-app:
-        image: rfbloyalty
+        image: piemasters/rfbloyalty
         environment:
             - SPRING_PROFILES_ACTIVE=prod,swagger
             - SPRING_DATASOURCE_URL=jdbc:mysql://rfbloyalty-mysql:3306/rfbloyalty?useUnicode=true&characterEncoding=utf8&useSSL=false
